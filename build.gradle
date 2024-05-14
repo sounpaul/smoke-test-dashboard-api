@@ -1,0 +1,39 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.2.5'
+	id 'io.spring.dependency-management' version '1.1.4'
+//	id 'net.serenity-bdd.serenity-gradle-plugin' version "4.0.30"
+}
+
+//apply plugin: "net.serenity-bdd.serenity-gradle-plugin"
+
+group = 'com.company'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	sourceCompatibility = '17'
+	targetCompatibility = '17'
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	compileOnly "org.projectlombok:lombok"
+	annotationProcessor "org.projectlombok:lombok"
+	implementation "org.springframework.boot:spring-boot-starter-data-jpa"
+	implementation "org.springframework.boot:spring-boot-starter-web"
+	implementation 'org.springframework.boot:spring-boot-starter'
+//	implementation "net.serenity-bdd:serenity-rest-assured:4.0.30"
+//	implementation "net.serenity-bdd:serenity-cucumber:4.0.30"
+	implementation 'io.cucumber:cucumber-java:7.17.0'
+	implementation 'io.cucumber:cucumber-junit:7.17.0'
+	implementation "junit:junit:4.13.2"
+	runtimeOnly "com.h2database:h2"
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
