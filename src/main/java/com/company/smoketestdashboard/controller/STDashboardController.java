@@ -14,7 +14,7 @@ public interface STDashboardController {
 
     ResponseEntity<STDashboardResponse> addTestSuite(STDashboardRequest stDashboardRequest);
     ResponseEntity<Object> runTestSuite(List<String> idList);
-    ResponseEntity<STDashboardResponse> deleteTestSuite(long id);
+    ResponseEntity<Object> deleteTestSuite(List<String> idList);
     ResponseEntity<STDashboardResponse> updateTestSuite(String id, String testSuiteName, String featureFileName, String isEnabled);
 
 }

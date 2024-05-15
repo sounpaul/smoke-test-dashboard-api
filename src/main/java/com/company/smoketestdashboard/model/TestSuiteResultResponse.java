@@ -18,7 +18,7 @@ import java.util.List;
 @AllArgsConstructor
 public class TestSuiteResultResponse {
     private String overallResult;
-    private String dashboardID;
+    private String testSuiteID;
     private String testSuiteName;
     private int total;
     private int passed;

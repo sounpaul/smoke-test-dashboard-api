@@ -33,7 +33,9 @@ public class TestStatusHistory {
     @JsonIgnore
     @Column(name = "TEST_EXECUTION_ID")
     private String testExecutionID;
-
+    @JsonIgnore
+    @Column(name = "TEST_SUITE_ID")
+    private long testSuiteID;
     @Column(name = "START_TIME")
     private String startTime;
     @Column(name = "END_TIME")

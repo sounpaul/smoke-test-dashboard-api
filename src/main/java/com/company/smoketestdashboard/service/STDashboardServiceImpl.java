@@ -61,11 +61,12 @@ public class STDashboardServiceImpl implements STDashboardService {
     }
 
     @Override
-    public void saveTestResults(STDashboardRequest stDashboardRequest, List<TestStatusHistory> testStatusHistoryList, String testExecutionID) {
+    public void saveTestResults(STDashboardRequest stDashboardRequest, List<TestStatusHistory> testStatusHistoryList, String testExecutionID, long testSuiteID) {
         stDashboardRequest.setTestExecutionID(testExecutionID);
         stDashboardRepository.save(stDashboardRequest);
         for (TestStatusHistory testStatusHistory : testStatusHistoryList) {
             testStatusHistory.setTestExecutionID(testExecutionID);
+            testStatusHistory.setTestSuiteID(testSuiteID);
             testStatusHistoryRepository.save(testStatusHistory);
         }
     }
@@ -80,7 +81,7 @@ public class STDashboardServiceImpl implements STDashboardService {
     }
 
     @Override
-    public TestSuiteResultResponse createTestResultResponse(int total, int passed, int failed, String startTime, String endTime, String duration, List<TestStatusHistory> testStatusHistoryList, String testSuiteName, String dashboardID) {
+    public TestSuiteResultResponse createTestResultResponse(int total, int passed, int failed, String startTime, String endTime, String duration, List<TestStatusHistory> testStatusHistoryList, String testSuiteName, String testSuiteID) {
         TestSuiteResultResponse testSuiteResultResponse = new TestSuiteResultResponse();
         testSuiteResultResponse.setPassed(passed);
         testSuiteResultResponse.setFailed(failed);
@@ -90,7 +91,7 @@ public class STDashboardServiceImpl implements STDashboardService {
         testSuiteResultResponse.setDuration(duration);
         testSuiteResultResponse.setScenarioWiseStatus(testStatusHistoryList);
         testSuiteResultResponse.setTestSuiteName(testSuiteName);
-        testSuiteResultResponse.setDashboardID(dashboardID);
+        testSuiteResultResponse.setTestSuiteID(testSuiteID);
         return testSuiteResultResponse;
     }
 

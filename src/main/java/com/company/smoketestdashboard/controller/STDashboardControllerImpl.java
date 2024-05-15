@@ -63,17 +63,17 @@ public class STDashboardControllerImpl extends GlobalHooks implements STDashboar
     @PostMapping(path = Constants.RUN_TEST_SUITE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> runTestSuite(@RequestParam(name = "id") List<String> idList) {
         if (idList.size() > 1) {
-            logger.info("Received request to run multiple test suites : Test Suite ID's={}", idList);
+            logger.info("Received request to run multiple test suites : Test Suite ID's={}", idList.stream().toList());
         }
         TestSuiteResultResponse testSuiteResultResponse = null;
-        TestExecutionSummaryResponse testExecutionSummaryResponse = null;
         List<Object> testExecutionSummaryResponseList = new ArrayList<>();
         int exitStatus = 0;
-        int runReadinessExitCode;
-        try {
-            for (String id : idList) {
-                int pass = 0;
-                int fail = 0;
+        int runReadinessExitCode = 0;
+        int notFoundCount = 0;
+        for (String id : idList) {
+            int pass = 0;
+            int fail = 0;
+            try {
                 STDashboardRequest stDashboardRequest = stDashboardService.getTestSuiteById(Long.parseLong(id));
                 String testSuiteName = stDashboardRequest.getSuiteName();
                 logger.info("Received request to run test suite : TEST_SUITE_NAME={}, FEATURE_FILE_NAME={}.feature", testSuiteName, stDashboardRequest.getFeatureFileName());
@@ -98,8 +98,7 @@ public class STDashboardControllerImpl extends GlobalHooks implements STDashboar
                     stDashboardRequest.setTestResult(testResult);
                     testSuiteResultResponse.setOverallResult(testResult);
                     testExecutionSummaryResponseList.add(testSuiteResultResponse);
-                    testExecutionSummaryResponse = new TestExecutionSummaryResponse();
-                    stDashboardService.saveTestResults(stDashboardRequest, testStatusHistoryList, testExecutionID);
+                    stDashboardService.saveTestResults(stDashboardRequest, testStatusHistoryList, testExecutionID, Long.parseLong(id));
                     logger.info("Finished running test suite : TEST_SUITE_NAME={}, FEATURE_FILE_NAME={}.feature, TEST_RESULTS={}", testSuiteName, stDashboardRequest.getFeatureFileName(), testResult);
                 } else if (runReadinessExitCode == -1) {
                     logger.error("Feature file does not exist in classpath");
@@ -116,32 +115,37 @@ public class STDashboardControllerImpl extends GlobalHooks implements STDashboar
                             String.format("Glue code for feature file %s.feature does not exist in classpath",
                                     stDashboardRequest.getFeatureFileName().trim())));
                 }
+            } catch (Exception e) {
+                logger.error("Exception caught : ", e);
+                notFoundCount++;
+                testExecutionSummaryResponseList.add(new CustomErrorResponse(String.format("Test suite with id=%s does not exist", id)));
             }
-        } catch (Exception e) {
-            logger.error("Exception caught : ", e);
         }
-        assert testExecutionSummaryResponse != null;
-        testExecutionSummaryResponse.setTestExecutionSummary(testExecutionSummaryResponseList);
-        return new ResponseEntity<>(testExecutionSummaryResponse, HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(testExecutionSummaryResponseList, idList.size()==notFoundCount ? HttpStatus.NOT_FOUND : HttpStatus.ACCEPTED);
     }
 
     @Override
     @DeleteMapping(path = Constants.DELETE_TEST_SUITE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<STDashboardResponse> deleteTestSuite(@RequestParam(name = "id") long id) {
+    public ResponseEntity<Object> deleteTestSuite(@RequestParam(name = "id") List<String> idList) {
         STDashboardRequest stDashboardRequest = null;
-        logger.info("Received request to delete existing test suite : TEST_SUITE_ID={}", id);
-        try {
-            stDashboardRequest = stDashboardService.purgeTestSuite(id).get();
-            logger.info("Test suite {} deleted successfully", stDashboardRequest.getSuiteName());
-            return new ResponseEntity<STDashboardResponse>(new STDashboardResponse(Constants.TEST_SUITE_DELETED_STRING,
-                    String.format("Test suite <%s> deleted", stDashboardRequest.getSuiteName().trim())),
-                    HttpStatus.OK);
-        } catch (Exception e) {
-            logger.error("Exception caught : ", e);
-            return new ResponseEntity<STDashboardResponse>(new STDashboardResponse(Constants.FAILURE_STRING,
-                    String.format("Test suite with id=%s does not exist", id)),
-                    HttpStatus.NOT_FOUND);
+        int suiteNotPresent = 0;
+        List<STDashboardResponse> stDashboardResponseList = new ArrayList<>();
+        if (idList.size() > 1) {
+            logger.info("Received request to delete multiple test suites from dashboard : Test Suite ID's - {}", idList.stream().toList());
         }
+        for (String id : idList) {
+            logger.info("Received request to delete existing test suite : TEST_SUITE_ID={}", id);
+            try {
+                stDashboardRequest = stDashboardService.purgeTestSuite(Long.parseLong(id)).get();
+                logger.info("Test suite {} deleted successfully", stDashboardRequest.getSuiteName());
+                stDashboardResponseList.add(new STDashboardResponse(Constants.TEST_SUITE_DELETED_STRING, String.format("Test suite <%s> deleted", stDashboardRequest.getSuiteName().trim())));
+            } catch (Exception e) {
+                logger.error("Exception caught : ", e);
+                suiteNotPresent++;
+                stDashboardResponseList.add(new STDashboardResponse(Constants.FAILURE_STRING, String.format("Test suite with id=%s does not exist", id)));
+            }
+        }
+        return new ResponseEntity<>(stDashboardResponseList, suiteNotPresent == idList.size() ? HttpStatus.NOT_FOUND : HttpStatus.ACCEPTED);
     }
 
     @Override
