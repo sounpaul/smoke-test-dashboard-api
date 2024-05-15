@@ -14,7 +14,7 @@ public interface STDashboardService {
 
     STDashboardRequest createTestSuite(STDashboardRequest stDashboardRequest);
     Optional<STDashboardRequest> purgeTestSuite(long id);
-    void saveTestResults(STDashboardRequest stDashboardRequest, List<TestStatusHistory> testStatusHistoryList, String testExecutionID, long testSuiteID);
+    void saveTestResults(STDashboardRequest stDashboardRequest, List<TestStatusHistory> testStatusHistoryList, String testExecutionId);
     int executeTestSuite(String testSuiteName);
     TestSuiteResultResponse createTestResultResponse(
             int total, int passed, int failed, String startTime,

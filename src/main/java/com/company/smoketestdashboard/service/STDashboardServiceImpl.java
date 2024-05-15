@@ -61,12 +61,12 @@ public class STDashboardServiceImpl implements STDashboardService {
     }
 
     @Override
-    public void saveTestResults(STDashboardRequest stDashboardRequest, List<TestStatusHistory> testStatusHistoryList, String testExecutionID, long testSuiteID) {
-        stDashboardRequest.setTestExecutionID(testExecutionID);
+    public void saveTestResults(STDashboardRequest stDashboardRequest, List<TestStatusHistory> testStatusHistoryList, String testExecutionId) {
+        stDashboardRequest.setTestExecutionID(testExecutionId);
         stDashboardRepository.save(stDashboardRequest);
         for (TestStatusHistory testStatusHistory : testStatusHistoryList) {
-            testStatusHistory.setTestExecutionID(testExecutionID);
-            testStatusHistory.setTestSuiteID(testSuiteID);
+            testStatusHistory.setTestExecutionID(testExecutionId);
+            testStatusHistory.setTestSuiteID(stDashboardRequest.getId());
             testStatusHistoryRepository.save(testStatusHistory);
         }
     }

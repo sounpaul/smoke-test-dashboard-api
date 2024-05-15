@@ -8,7 +8,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TestErrorResponse {
-    private String dashboardID;
+    private String testSuiteId;
+    private String overallTestResult;
     private String testSuiteName;
     private String description;
 }

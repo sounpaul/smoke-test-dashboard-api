@@ -35,7 +35,7 @@ public class STDashboardRequest {
     private String duration;
     @Column(name = "FEATURE_FILE_NAME")
     private String featureFileName;
-    @Column(name = "TEST_EXECUTION_ID")
+    @Column(name = "LAST_SUCCESSFUL_TEST_EXECUTION_ID")
     private String testExecutionID;
     @Column(name = "TEST_RESULT")
     private String testResult;
@@ -48,6 +48,8 @@ public class STDashboardRequest {
     @Column(name = "ENABLED")
     @JsonIgnore
     private boolean isEnabled;
+    @JsonIgnore
+    private String notes;
 
     @Override
     public String toString() {

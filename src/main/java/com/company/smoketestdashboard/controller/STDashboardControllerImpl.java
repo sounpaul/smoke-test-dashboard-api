@@ -4,6 +4,7 @@ import com.company.smoketestdashboard.model.*;
 import com.company.smoketestdashboard.service.STDashboardServiceImpl;
 import com.company.smoketestdashboard.stepdefinition.GlobalHooks;
 import com.company.smoketestdashboard.util.Constants;
+import com.company.smoketestdashboard.util.TimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,14 +74,17 @@ public class STDashboardControllerImpl extends GlobalHooks implements STDashboar
         for (String id : idList) {
             int pass = 0;
             int fail = 0;
+            String testResult = "";
             try {
                 STDashboardRequest stDashboardRequest = stDashboardService.getTestSuiteById(Long.parseLong(id));
                 String testSuiteName = stDashboardRequest.getSuiteName();
                 logger.info("Received request to run test suite : TEST_SUITE_NAME={}, FEATURE_FILE_NAME={}.feature", testSuiteName, stDashboardRequest.getFeatureFileName());
+                String startTimeSrvcLvl = TimeUtils.getCurrentDateTime(Constants.DATETIME_FORMAT);
+                long currentTimeInMillsSrvcLvl = System.currentTimeMillis();
                 runReadinessExitCode = stDashboardService.checkForRunReadiness(stDashboardRequest.getFeatureFileName().trim());
                 if (runReadinessExitCode == 0) {
                     logger.info("Glue code for feature file src/main/resources/features/{}.feature exists", stDashboardRequest.getFeatureFileName().trim());
-                    exitStatus = stDashboardService.executeTestSuite(stDashboardRequest.getFeatureFileName());
+                    exitStatus = stDashboardService.executeTestSuite(stDashboardRequest.getFeatureFileName().trim());
                     stDashboardRequest.setStartTime(startTimeOverall);
                     stDashboardRequest.setEndTime(endTimeOverall);
                     stDashboardRequest.setDuration(overallDuration);
@@ -93,35 +97,56 @@ public class STDashboardControllerImpl extends GlobalHooks implements STDashboar
                     stDashboardRequest.setTotalTestCases(String.valueOf(testStatusHistoryList.size()));
                     stDashboardRequest.setTestCasesPassed(String.valueOf(pass));
                     stDashboardRequest.setTestCasesFailed(String.valueOf(fail));
-                    testSuiteResultResponse = stDashboardService.createTestResultResponse(testStatusHistoryList.size(), pass, fail, startTimeOverall, endTimeOverall, overallDuration, testStatusHistoryList, testSuiteName, String.valueOf(stDashboardRequest.getId()));
-                    String testResult = exitStatus == 0 ? "PASSED" : "FAILED";
-                    stDashboardRequest.setTestResult(testResult);
-                    testSuiteResultResponse.setOverallResult(testResult);
+                    testSuiteResultResponse = stDashboardService.createTestResultResponse(testStatusHistoryList.size(), pass, fail, startTimeOverall, endTimeOverall, overallDuration, testStatusHistoryList, testSuiteName, id);
+                    if (exitStatus == 0) {
+                        stDashboardRequest.setTestResult(Constants.TEST_CASE_PASSED_STRING);
+                        testSuiteResultResponse.setOverallResult(Constants.TEST_CASE_PASSED_STRING);
+                        stDashboardRequest.setNotes(String.format("All %s test cases passed", testStatusHistoryList.size()));
+                        testResult = Constants.TEST_CASE_PASSED_STRING;
+                    } else {
+                        testResult = Constants.FAILURE_STRING;
+                        stDashboardRequest.setTestResult(Constants.FAILURE_STRING);
+                        testSuiteResultResponse.setOverallResult(Constants.FAILURE_STRING);
+                        List<String> failingScenarios = new ArrayList<>();
+                        for (TestStatusHistory testStatusHistory : testStatusHistoryList) {
+                            if (testStatusHistory.getStatus() == "FAILED") {
+                                failingScenarios.add(testStatusHistory.getScenarioName());
+                            }
+                        }
+                        stDashboardRequest.setNotes(String.format("Failing test cases. Failed scenarios : %s", failingScenarios));
+                    }
+                    stDashboardService.saveTestResults(stDashboardRequest, testStatusHistoryList, testExecutionID);
                     testExecutionSummaryResponseList.add(testSuiteResultResponse);
-                    stDashboardService.saveTestResults(stDashboardRequest, testStatusHistoryList, testExecutionID, Long.parseLong(id));
-                    logger.info("Finished running test suite : TEST_SUITE_NAME={}, FEATURE_FILE_NAME={}.feature, TEST_RESULTS={}", testSuiteName, stDashboardRequest.getFeatureFileName(), testResult);
-                } else if (runReadinessExitCode == -1) {
-                    logger.error("Feature file does not exist in classpath");
-                    testExecutionSummaryResponseList.add(new TestErrorResponse(
-                            String.valueOf(stDashboardRequest.getId()),
-                            testSuiteName,
-                            String.format("Feature file %s.feature does not exist in classpath",
-                                    stDashboardRequest.getFeatureFileName().trim())));
-                } else if (runReadinessExitCode == 1) {
-                    logger.error("Glue code does not exist in classpath");
-                    testExecutionSummaryResponseList.add(new TestErrorResponse(
-                            String.valueOf(stDashboardRequest.getId()),
-                            testSuiteName,
-                            String.format("Glue code for feature file %s.feature does not exist in classpath",
-                                    stDashboardRequest.getFeatureFileName().trim())));
+                } else {
+                    String errorLogger = "";
+                    String endTimeSrvcLvl = TimeUtils.getCurrentDateTime(Constants.DATETIME_FORMAT);
+                    stDashboardRequest.setDuration(String.valueOf(System.currentTimeMillis() - currentTimeInMillsSrvcLvl));
+                    stDashboardRequest.setStartTime(startTimeSrvcLvl);
+                    stDashboardRequest.setEndTime(endTimeSrvcLvl);
+                    stDashboardRequest.setTestResult(Constants.TEST_CASE_SKIPPED_STRING);
+                    stDashboardRequest.setTotalTestCases(Constants.TEST_UNDEFINED_STRING);
+                    stDashboardRequest.setTestCasesPassed(Constants.TEST_UNDEFINED_STRING);
+                    stDashboardRequest.setTestCasesFailed(Constants.TEST_UNDEFINED_STRING);
+                    stDashboardRequest.setTestExecutionID(Constants.TEST_UNDEFINED_STRING);
+                    testResult = Constants.TEST_CASE_SKIPPED_STRING;
+                    if (runReadinessExitCode == -1) {
+                        errorLogger = String.format("Feature file %s.feature does not exist in classpath", stDashboardRequest.getFeatureFileName());
+                    } else if (runReadinessExitCode == 1) {
+                        errorLogger = String.format("Glue code for feature file %s.feature does not exist in classpath", stDashboardRequest.getFeatureFileName());
+                    }
+                    testExecutionSummaryResponseList.add(new TestErrorResponse(String.valueOf(stDashboardRequest.getId()), Constants.TEST_CASE_SKIPPED_STRING, testSuiteName, errorLogger));
+                    logger.error(errorLogger);
+                    stDashboardRequest.setNotes(errorLogger);
+                    stDashboardService.updateTestSuite(stDashboardRequest);
                 }
+                logger.info("Finished running test suite : TEST_SUITE_NAME={}, FEATURE_FILE_NAME={}.feature, TEST_RESULTS={}", stDashboardRequest.getSuiteName(), stDashboardRequest.getFeatureFileName(), testResult);
             } catch (Exception e) {
                 logger.error("Exception caught : ", e);
                 notFoundCount++;
                 testExecutionSummaryResponseList.add(new CustomErrorResponse(String.format("Test suite with id=%s does not exist", id)));
             }
         }
-        return new ResponseEntity<>(testExecutionSummaryResponseList, idList.size()==notFoundCount ? HttpStatus.NOT_FOUND : HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(testExecutionSummaryResponseList, idList.size() == notFoundCount ? HttpStatus.NOT_FOUND : HttpStatus.ACCEPTED);
     }
 
     @Override
@@ -176,7 +201,7 @@ public class STDashboardControllerImpl extends GlobalHooks implements STDashboar
             if (!(featureFileName == null && testSuiteName == null && isEnabled == null)) {
                 stDashboardService.updateTestSuite(stDashboardRequest);
                 logger.info("Updated completed in database");
-                return new ResponseEntity<>(new STDashboardResponse(Constants.MODIFIED_STRING,
+                return new ResponseEntity<>(new STDashboardResponse(Constants.TEST_SUITE_MODIFIED_STRING,
                         "Test suite updated"), HttpStatus.ACCEPTED);
             } else {
                 logger.error("Request params are null : testSuiteName={}, featureFileName={}, isEnabled={}", null, null, null);

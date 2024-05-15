@@ -19,3 +19,7 @@ spring:
   test:
     database:
       replace: none
+
+cron:
+  expression: "*/20 * * * * *"
+#  expression: "-"

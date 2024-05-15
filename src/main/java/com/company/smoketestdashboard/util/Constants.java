@@ -10,7 +10,10 @@ public class Constants {
     public static final String HEALTH_CHECK = "healthcheck";
     public static final String TEST_SUITE_ADDED_STRING = "ADDED";
     public static final String FAILURE_STRING = "FAILED";
-    public static final String MODIFIED_STRING = "MODIFIED";
+    public static final String TEST_CASE_PASSED_STRING = "PASSED";
+    public static final String TEST_UNDEFINED_STRING = "UNDEFINED";
+    public static final String TEST_CASE_SKIPPED_STRING = "SKIPPED";
+    public static final String TEST_SUITE_MODIFIED_STRING = "MODIFIED";
     public static final String TEST_SUITE_DELETED_STRING = "DELETED";
     public static final String DATETIME_FORMAT = "dd-MMM-yyyy hh.mm.ss.SSS a";
     public static final String NOT_YET_EXECUTED = "NOT YET EXECUTED";
