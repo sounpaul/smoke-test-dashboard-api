@@ -10,8 +10,9 @@ public class Constants {
     public static final String HEALTH_CHECK = "healthcheck";
     public static final String TEST_SUITE_ADDED_STRING = "ADDED";
     public static final String FAILURE_STRING = "FAILED";
+    public static final String MODIFIED_STRING = "MODIFIED";
     public static final String TEST_SUITE_DELETED_STRING = "DELETED";
-    public static String DATETIME_FORMAT = "dd-MMM-yyyy hh.mm.ss.SSS a";
-    public static String NOT_YET_EXECUTED = "NOT YET EXECUTED";
+    public static final String DATETIME_FORMAT = "dd-MMM-yyyy hh.mm.ss.SSS a";
+    public static final String NOT_YET_EXECUTED = "NOT YET EXECUTED";
 
 }

@@ -2,7 +2,7 @@ package com.company.smoketestdashboard.service;
 
 import com.company.smoketestdashboard.exception.SMDashboardException;
 import com.company.smoketestdashboard.model.STDashboardRequest;
-import com.company.smoketestdashboard.model.TestResultResponse;
+import com.company.smoketestdashboard.model.TestSuiteResultResponse;
 import com.company.smoketestdashboard.model.TestStatusHistory;
 import com.company.smoketestdashboard.repository.STDashboardRepository;
 import com.company.smoketestdashboard.repository.TestStatusHistoryRepository;
@@ -14,10 +14,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 /**
  * @author Sounak Paul
@@ -82,21 +80,33 @@ public class STDashboardServiceImpl implements STDashboardService {
     }
 
     @Override
-    public TestResultResponse createTestResultResponse(int total, int passed, int failed, String startTime, String endTime, String duration, List<TestStatusHistory> testStatusHistoryList) {
-        TestResultResponse testResultResponse = new TestResultResponse();
-        testResultResponse.setPassed(passed);
-        testResultResponse.setFailed(failed);
-        testResultResponse.setTotal(total);
-        testResultResponse.setStartTime(startTime);
-        testResultResponse.setEndTime(endTime);
-        testResultResponse.setDuration(duration);
-        testResultResponse.setScenarioWiseStatus(testStatusHistoryList);
-        return testResultResponse;
+    public TestSuiteResultResponse createTestResultResponse(int total, int passed, int failed, String startTime, String endTime, String duration, List<TestStatusHistory> testStatusHistoryList, String testSuiteName, String dashboardID) {
+        TestSuiteResultResponse testSuiteResultResponse = new TestSuiteResultResponse();
+        testSuiteResultResponse.setPassed(passed);
+        testSuiteResultResponse.setFailed(failed);
+        testSuiteResultResponse.setTotal(total);
+        testSuiteResultResponse.setStartTime(startTime);
+        testSuiteResultResponse.setEndTime(endTime);
+        testSuiteResultResponse.setDuration(duration);
+        testSuiteResultResponse.setScenarioWiseStatus(testStatusHistoryList);
+        testSuiteResultResponse.setTestSuiteName(testSuiteName);
+        testSuiteResultResponse.setDashboardID(dashboardID);
+        return testSuiteResultResponse;
     }
 
     @Override
     public STDashboardRequest getTestSuite(String testSuiteName) {
         return stDashboardRepository.findTestSuiteByName(testSuiteName);
+    }
+
+    public STDashboardRequest getTestSuiteById(long id) {
+        STDashboardRequest dbData = null;
+        if (stDashboardRepository.existsById(id)) {
+            dbData = stDashboardRepository.findById(id).get();
+        } else {
+            throw new SMDashboardException(String.format("Test suite with id=%s does not exist", id));
+        }
+        return dbData;
     }
 
     @Override
@@ -114,6 +124,16 @@ public class STDashboardServiceImpl implements STDashboardService {
         return returnCode;
     }
 
+    @Override
+    public STDashboardRequest updateTestSuite(STDashboardRequest stDashboardRequest) {
+        if (stDashboardRepository.existsById(stDashboardRequest.getId())) {
+            stDashboardRequest = stDashboardRepository.save(stDashboardRequest);
+        } else {
+            throw new SMDashboardException(String.format("Test suite with id=%s does not exist", stDashboardRequest.getId()));
+        }
+        return stDashboardRequest;
+    }
+
     private static STDashboardRequest transform(STDashboardRequest stDashboardRequest, String action) {
         stDashboardRequest.setStartTime(Constants.NOT_YET_EXECUTED);
         stDashboardRequest.setEndTime(Constants.NOT_YET_EXECUTED);
@@ -124,6 +144,7 @@ public class STDashboardServiceImpl implements STDashboardService {
         stDashboardRequest.setTestCasesFailed(Constants.NOT_YET_EXECUTED);
         stDashboardRequest.setTestExecutionID(Constants.NOT_YET_EXECUTED);
         stDashboardRequest.setLastUpdatedTime(TimeUtils.getCurrentDateTime(Constants.DATETIME_FORMAT));
+        stDashboardRequest.setEnabled(true);
         return stDashboardRequest;
     }
 

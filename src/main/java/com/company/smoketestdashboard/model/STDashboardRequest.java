@@ -45,6 +45,9 @@ public class STDashboardRequest {
     private String testCasesPassed;
     @Column(name = "TEST_CASES_FAILED")
     private String testCasesFailed;
+    @Column(name = "ENABLED")
+    @JsonIgnore
+    private boolean isEnabled;
 
     @Override
     public String toString() {

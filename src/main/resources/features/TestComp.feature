@@ -1,5 +1,5 @@
 #Author: Sounak Paul
-Feature: Smoke Test feature
+Feature: Comp Test feature
 
   @Test
   Scenario Outline: Validate sum of two numbers

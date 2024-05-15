@@ -7,7 +7,8 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ErrorResponse {
-
+public class TestErrorResponse {
+    private String dashboardID;
+    private String testSuiteName;
     private String description;
 }
