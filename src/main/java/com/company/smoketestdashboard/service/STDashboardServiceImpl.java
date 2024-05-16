@@ -10,12 +10,15 @@ import com.company.smoketestdashboard.stepdefinition.GlobalHooks;
 import com.company.smoketestdashboard.util.Constants;
 import com.company.smoketestdashboard.util.TimeUtils;
 import io.cucumber.core.cli.Main;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +27,8 @@ import java.util.Optional;
  * @author Sounak Paul
  */
 @Service
-@Data
+@Getter
+@Setter
 public class STDashboardServiceImpl extends GlobalHooks implements STDashboardService {
 
     private static final Logger logger = LoggerFactory.getLogger(STDashboardServiceImpl.class);
@@ -81,12 +85,39 @@ public class STDashboardServiceImpl extends GlobalHooks implements STDashboardSe
     }
 
     @Override
+    public int checkForRunReadiness(String featureFileName) {
+        int returnCode = -1;
+        try {
+            ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+            InputStream is = contextClassLoader.getResourceAsStream(String.format("%s.feature", featureFileName));
+            if (is != null) {
+                URL featureFileResource = this.getClass().getClassLoader().getResource(String.format("%s.feature", featureFileName));
+                logger.info("Feature file {}.feature exists", featureFileName);
+                String[] args = new String[]{"-g", "com.company.smoketestdashboard.stepdefinition", featureFileResource.toExternalForm(), "--dry-run"};
+                returnCode = Main.run(args, contextClassLoader);
+            }
+        } catch (Exception e) {
+            logger.error("Exception caught : ", e);
+        }
+        return returnCode;
+    }
+
+    @Override
     public int executeTestSuite(String featureFileName) {
-        String[] args = new String[]{"-g", "com.company.smoketestdashboard.stepdefinition",
-                String.format("./src/main/resources/features/%s.feature", featureFileName.trim())};
-        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
-        int exitCode = Main.run(args, contextClassLoader);
-        logger.info("Cucumber execution completed, exit code={}", exitCode);
+        int exitCode = 1;
+        try {
+            ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+            InputStream is = contextClassLoader.getResourceAsStream(String.format("%s.feature", featureFileName));
+            if (is != null) {
+                URL featureFileResource = this.getClass().getClassLoader().getResource(String.format("%s.feature", featureFileName));
+                logger.info("Feature file {}.feature exists", featureFileName);
+                String[] args = new String[]{"-g", "com.company.smoketestdashboard.stepdefinition", featureFileResource.toExternalForm()};
+                exitCode = Main.run(args, contextClassLoader);
+            }
+            logger.info("Cucumber execution completed, exit code={}", exitCode);
+        } catch (Exception e) {
+            logger.error("Exception e : ", e);
+        }
         return exitCode;
 
     }
@@ -119,21 +150,6 @@ public class STDashboardServiceImpl extends GlobalHooks implements STDashboardSe
             throw new SMDashboardException(String.format("Test suite with id=%s does not exist", id));
         }
         return dbData;
-    }
-
-    @Override
-    public int checkForRunReadiness(String featureFileName) {
-        int returnCode = -1;
-        ClassLoader classLoader = getClass().getClassLoader();
-        if (classLoader.getResource("features" + System.getProperty("file.separator") + String.format("%s.feature", featureFileName)) != null) {
-            logger.info("Feature file {}.feature exists", featureFileName);
-            String[] args = new String[]{"-g", "com.company.smoketestdashboard.stepdefinition",
-                    String.format("./src/main/resources/features/%s.feature", featureFileName.trim()),
-                    "--dry-run"};
-            ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
-            returnCode = Main.run(args, contextClassLoader);
-        }
-        return returnCode;
     }
 
     @Override

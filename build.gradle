@@ -1,39 +1,84 @@
 plugins {
-	id 'java'
-	id 'org.springframework.boot' version '3.2.5'
-	id 'io.spring.dependency-management' version '1.1.4'
-//	id 'net.serenity-bdd.serenity-gradle-plugin' version "4.0.30"
+    id 'java'
+    id 'org.springframework.boot' version '3.2.5'
+    id 'io.spring.dependency-management' version '1.1.4'
+    id 'base'
 }
 
-//apply plugin: "net.serenity-bdd.serenity-gradle-plugin"
-
 group = 'com.company'
-version = '0.0.1-SNAPSHOT'
 
 java {
-	sourceCompatibility = '17'
-	targetCompatibility = '17'
+    sourceCompatibility = '17'
+    targetCompatibility = '17'
 }
 
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-	compileOnly "org.projectlombok:lombok"
-	annotationProcessor "org.projectlombok:lombok"
-	implementation "org.springframework.boot:spring-boot-starter-data-jpa"
-	implementation "org.springframework.boot:spring-boot-starter-web"
-	implementation 'org.springframework.boot:spring-boot-starter'
-//	implementation "net.serenity-bdd:serenity-rest-assured:4.0.30"
-//	implementation "net.serenity-bdd:serenity-cucumber:4.0.30"
-	implementation 'io.cucumber:cucumber-java:7.17.0'
-	implementation 'io.cucumber:cucumber-junit:7.17.0'
-	implementation "junit:junit:4.13.2"
-	runtimeOnly "com.h2database:h2"
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    compileOnly "org.projectlombok:lombok"
+    annotationProcessor "org.projectlombok:lombok"
+    implementation "org.springframework.boot:spring-boot-starter-data-jpa"
+    implementation "org.springframework.boot:spring-boot-starter-web"
+    implementation "org.springframework.boot:spring-boot-starter-actuator"
+    implementation "org.springframework.boot:spring-boot-actuator-autoconfigure"
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'io.cucumber:cucumber-java:7.17.0'
+    implementation 'io.cucumber:cucumber-junit:7.17.0'
+    implementation "junit:junit:4.13.2"
+    runtimeOnly "com.h2database:h2"
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
+task copyFile(type: Copy) {
+    from 'src/main/resources/features'
+    into 'src/main/resources'
+}
+
+task deleteFile(type: Delete) {
+    def directoryToDeleteFrom = file("src/main/resources")
+    def pattern = "/*.feature"
+    FileTree filesToDelete = fileTree(directoryToDeleteFrom).include(pattern) as FileTree
+    delete filesToDelete
+}
+
+jar {
+    enabled = false
+    manifest {
+        attributes(
+                'Class-Path': configurations.compileClasspath.collect { it.getName() }.join(' '),
+                'Main-Class': 'com.company.smoketestdashboard.SmokeTestDashboardApplication'
+        )
+    }
+}
+
+processResources.mustRunAfter(copyFile)
+
+bootJar {
+    dependsOn copyFile
+    dependsOn deleteFile
+    exclude "**/features/**"
+    base {
+        archivesName = "smoke-test-dashboard-api"
+    }
+    manifest {
+        attributes(
+                'Implementation-Title': 'Smoke Test Dashboard API',
+                'Implementation-Version': project.version,
+                'Build-Date': new Date(),
+                'Built-By': System.getProperty('user.name'),
+                'DisableIBMJAXWSEngine': true
+        )
+    }
+}
+
+springBoot {
+    buildInfo()
+}
+
+
 tasks.named('test') {
-	useJUnitPlatform()
+    useJUnitPlatform()
 }

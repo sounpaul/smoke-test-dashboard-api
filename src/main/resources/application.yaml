@@ -1,0 +1,19 @@
+spring:
+  jmx:
+    enabled: true
+  application:
+    name: smokeTestDashboard
+  profiles:
+    active: local
+
+management:
+  endpoints:
+    jmx:
+      exposure:
+        include: "health,info"
+    web:
+      exposure:
+        include: "health,info"
+
+server:
+  port: 8080
