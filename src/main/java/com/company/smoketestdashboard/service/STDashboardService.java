@@ -14,14 +14,14 @@ public interface STDashboardService {
 
     STDashboardRequest createTestSuite(STDashboardRequest stDashboardRequest);
     Optional<STDashboardRequest> purgeTestSuite(long id);
-    void saveTestResults(STDashboardRequest stDashboardRequest, List<TestStatusHistory> testStatusHistoryList, String testExecutionId);
+    void saveTestResults(STDashboardRequest stDashboardRequest);
     int executeTestSuite(String testSuiteName);
-    TestSuiteResultResponse createTestResultResponse(
-            int total, int passed, int failed, String startTime,
-            String endTime, String duration, List<TestStatusHistory> testStatusHistoryList,
-            String testSuiteName, String testSuiteID);
+    TestSuiteResultResponse createTestResultResponse(String testSuiteName, String testSuiteID);
     STDashboardRequest getTestSuite(String testSuiteName);
     int checkForRunReadiness(String featureFileName);
     STDashboardRequest updateTestSuite(STDashboardRequest stDashboardRequest);
+
+    STDashboardRequest captureDefinedTestExecutionResults(STDashboardRequest stDashboardRequest);
+    STDashboardRequest captureUndefinedTestExecutionResults(STDashboardRequest stDashboardRequest, long startTimeInMills, String startTime);
 
 }

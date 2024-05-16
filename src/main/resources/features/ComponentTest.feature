@@ -10,8 +10,8 @@ Feature: Comp Test feature
 
       | TC | first_num | second_num | result |
       | 1  | 2         | 3          | 5      |
-      | 2  | 3         | 5          | 9      |
-      | 3  | 2         | 9          | 11     |
+      | 2  | 3         | 5          | 8      |
+      | 3  | 2         | 9          | 10     |
 
   @Test
   Scenario Outline: Validate product of two numbers
@@ -22,8 +22,8 @@ Feature: Comp Test feature
 
       | TC | first_num | second_num | result |
       | 1  | 2         | 3          | 6      |
-      | 2  | 4         | 5          | 21     |
-      | 3  | 5         | 10         | 51     |
+      | 2  | 4         | 5          | 20     |
+      | 3  | 5         | 10         | 50     |
 
 
 

@@ -22,7 +22,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value = Constants.CONTEXT_ROOT, produces = MediaType.APPLICATION_JSON_VALUE)
-public class STDashboardControllerImpl extends GlobalHooks implements STDashboardController {
+public class STDashboardControllerImpl implements STDashboardController {
 
     private static final Logger logger = LoggerFactory.getLogger(STDashboardControllerImpl.class);
 
@@ -72,8 +72,6 @@ public class STDashboardControllerImpl extends GlobalHooks implements STDashboar
         int runReadinessExitCode = 0;
         int notFoundCount = 0;
         for (String id : idList) {
-            int pass = 0;
-            int fail = 0;
             String testResult = "";
             try {
                 STDashboardRequest stDashboardRequest = stDashboardService.getTestSuiteById(Long.parseLong(id));
@@ -83,52 +81,27 @@ public class STDashboardControllerImpl extends GlobalHooks implements STDashboar
                 long currentTimeInMillsSrvcLvl = System.currentTimeMillis();
                 runReadinessExitCode = stDashboardService.checkForRunReadiness(stDashboardRequest.getFeatureFileName().trim());
                 if (runReadinessExitCode == 0) {
-                    logger.info("Glue code for feature file src/main/resources/features/{}.feature exists", stDashboardRequest.getFeatureFileName().trim());
+                    logger.info("Glue code for feature file {}.feature exists", stDashboardRequest.getFeatureFileName().trim());
                     exitStatus = stDashboardService.executeTestSuite(stDashboardRequest.getFeatureFileName().trim());
-                    stDashboardRequest.setStartTime(startTimeOverall);
-                    stDashboardRequest.setEndTime(endTimeOverall);
-                    stDashboardRequest.setDuration(overallDuration);
-                    for (TestStatusHistory scenarioWiseStatus : testStatusHistoryList) {
-                        if (scenarioWiseStatus.getStatus().equals("PASSED"))
-                            pass++;
-                        else if (scenarioWiseStatus.getStatus().equals("FAILED"))
-                            fail++;
-                    }
-                    stDashboardRequest.setTotalTestCases(String.valueOf(testStatusHistoryList.size()));
-                    stDashboardRequest.setTestCasesPassed(String.valueOf(pass));
-                    stDashboardRequest.setTestCasesFailed(String.valueOf(fail));
-                    testSuiteResultResponse = stDashboardService.createTestResultResponse(testStatusHistoryList.size(), pass, fail, startTimeOverall, endTimeOverall, overallDuration, testStatusHistoryList, testSuiteName, id);
+                    stDashboardRequest = stDashboardService.captureDefinedTestExecutionResults(stDashboardRequest);
+                    testSuiteResultResponse = stDashboardService.createTestResultResponse(testSuiteName, id);
                     if (exitStatus == 0) {
-                        stDashboardRequest.setTestResult(Constants.TEST_CASE_PASSED_STRING);
-                        testSuiteResultResponse.setOverallResult(Constants.TEST_CASE_PASSED_STRING);
-                        stDashboardRequest.setNotes(String.format("All %s test cases passed", testStatusHistoryList.size()));
                         testResult = Constants.TEST_CASE_PASSED_STRING;
+                        stDashboardRequest.setTestResult(testResult);
+                        testSuiteResultResponse.setOverallResult(testResult);
+                        stDashboardRequest.setNotes(String.format("All %s test cases passed", stDashboardService.getTotal()));
                     } else {
                         testResult = Constants.FAILURE_STRING;
-                        stDashboardRequest.setTestResult(Constants.FAILURE_STRING);
-                        testSuiteResultResponse.setOverallResult(Constants.FAILURE_STRING);
-                        List<String> failingScenarios = new ArrayList<>();
-                        for (TestStatusHistory testStatusHistory : testStatusHistoryList) {
-                            if (testStatusHistory.getStatus() == "FAILED") {
-                                failingScenarios.add(testStatusHistory.getScenarioName());
-                            }
-                        }
-                        stDashboardRequest.setNotes(String.format("Failing test cases. Failed scenarios : %s", failingScenarios));
+                        stDashboardRequest.setTestResult(testResult);
+                        testSuiteResultResponse.setOverallResult(testResult);
+                        stDashboardRequest.setNotes(String.format("Failing test cases. Failed scenarios : %s", stDashboardService.getFailingScenarios()));
                     }
-                    stDashboardService.saveTestResults(stDashboardRequest, testStatusHistoryList, testExecutionID);
+                    stDashboardService.saveTestResults(stDashboardRequest);
                     testExecutionSummaryResponseList.add(testSuiteResultResponse);
                 } else {
                     String errorLogger = "";
-                    String endTimeSrvcLvl = TimeUtils.getCurrentDateTime(Constants.DATETIME_FORMAT);
-                    stDashboardRequest.setDuration(String.valueOf(System.currentTimeMillis() - currentTimeInMillsSrvcLvl));
-                    stDashboardRequest.setStartTime(startTimeSrvcLvl);
-                    stDashboardRequest.setEndTime(endTimeSrvcLvl);
-                    stDashboardRequest.setTestResult(Constants.TEST_CASE_SKIPPED_STRING);
-                    stDashboardRequest.setTotalTestCases(Constants.TEST_UNDEFINED_STRING);
-                    stDashboardRequest.setTestCasesPassed(Constants.TEST_UNDEFINED_STRING);
-                    stDashboardRequest.setTestCasesFailed(Constants.TEST_UNDEFINED_STRING);
-                    stDashboardRequest.setTestExecutionID(Constants.TEST_UNDEFINED_STRING);
                     testResult = Constants.TEST_CASE_SKIPPED_STRING;
+                    stDashboardRequest = stDashboardService.captureUndefinedTestExecutionResults(stDashboardRequest,currentTimeInMillsSrvcLvl, startTimeSrvcLvl);
                     if (runReadinessExitCode == -1) {
                         errorLogger = String.format("Feature file %s.feature does not exist in classpath", stDashboardRequest.getFeatureFileName());
                     } else if (runReadinessExitCode == 1) {
