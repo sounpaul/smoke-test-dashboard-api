@@ -4,11 +4,13 @@ import com.company.smoketestdashboard.model.TestStatusHistory;
 import com.company.smoketestdashboard.util.Constants;
 import com.company.smoketestdashboard.util.TimeUtils;
 import io.cucumber.java.*;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
+@Slf4j
 public class GlobalHooks {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalHooks.class);

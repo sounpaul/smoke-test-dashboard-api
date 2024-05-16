@@ -1,10 +1,12 @@
 package com.company.smoketestdashboard.controller;
 
 import com.company.smoketestdashboard.model.*;
+import com.company.smoketestdashboard.service.HealthCheckServiceImpl;
 import com.company.smoketestdashboard.service.STDashboardServiceImpl;
 import com.company.smoketestdashboard.stepdefinition.GlobalHooks;
 import com.company.smoketestdashboard.util.Constants;
 import com.company.smoketestdashboard.util.TimeUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,12 +24,15 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value = Constants.CONTEXT_ROOT, produces = MediaType.APPLICATION_JSON_VALUE)
+@Slf4j
 public class STDashboardControllerImpl implements STDashboardController {
 
     private static final Logger logger = LoggerFactory.getLogger(STDashboardControllerImpl.class);
 
     @Autowired
     STDashboardServiceImpl stDashboardService;
+    @Autowired
+    HealthCheckServiceImpl healthCheckService;
 
     @Override
     @PostMapping(path = Constants.ADD_TEST_SUITE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -184,5 +189,12 @@ public class STDashboardControllerImpl implements STDashboardController {
             logger.error("Exception caught : ", e);
             return new ResponseEntity<>(new STDashboardResponse(Constants.FAILURE_STRING, "Test suite does not exist"), HttpStatus.NOT_FOUND);
         }
+    }
+
+    @Override
+    @GetMapping(path = Constants.HEALTH_CHECK, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<HealthCheckResponse> healthcheck() {
+        HealthCheckResponse healthCheckResponse = healthCheckService.healthcheck();
+        return new ResponseEntity<>(healthCheckResponse, healthCheckResponse.getDbStatus().equals("UP") ? HttpStatus.OK : HttpStatus.EXPECTATION_FAILED);
     }
 }

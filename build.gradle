@@ -68,9 +68,20 @@ bootJar {
                 'Implementation-Title': 'Smoke Test Dashboard API',
                 'Implementation-Version': project.version,
                 'Build-Date': new Date(),
+                'Branch': getBranch(),
                 'Built-By': System.getProperty('user.name'),
                 'DisableIBMJAXWSEngine': true
         )
+    }
+}
+
+def getBranch() {
+    if (project.hasProperty('BRANCH')) {
+        return "$BRANCH"
+    } else {
+        def gitCmd = 'git rev-parse --abbrev-ref HEAD'
+        def gitOut = gitCmd.execute().text.trim()
+        return gitOut
     }
 }
 

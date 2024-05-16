@@ -15,5 +15,8 @@ public interface STDashboardRepository extends JpaRepository<STDashboardRequest,
     @Query("Select d from STDashboardRequest d where d.isEnabled = true")
     List<STDashboardRequest> findAllEnabledTestSuites();
 
+    @Query(value = "select 1 from dual", nativeQuery = true)
+    int getHealth();
+
 
 }

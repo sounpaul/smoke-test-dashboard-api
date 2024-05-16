@@ -17,3 +17,7 @@ management:
 
 server:
   port: 8080
+
+cron:
+#    expression: "*/10 * * * * *"
+  expression: "-"

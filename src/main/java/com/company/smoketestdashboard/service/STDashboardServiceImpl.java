@@ -12,6 +12,7 @@ import com.company.smoketestdashboard.util.TimeUtils;
 import io.cucumber.core.cli.Main;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,7 @@ import java.util.Optional;
 @Service
 @Getter
 @Setter
+@Slf4j
 public class STDashboardServiceImpl extends GlobalHooks implements STDashboardService {
 
     private static final Logger logger = LoggerFactory.getLogger(STDashboardServiceImpl.class);

@@ -1,24 +1,24 @@
 package com.company.smoketestdashboard.service;
 
 import com.company.smoketestdashboard.model.STDashboardRequest;
-import com.company.smoketestdashboard.model.TestStatusHistory;
 import com.company.smoketestdashboard.repository.STDashboardRepository;
 import com.company.smoketestdashboard.stepdefinition.GlobalHooks;
 import com.company.smoketestdashboard.util.Constants;
 import com.company.smoketestdashboard.util.TimeUtils;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @author Sounak Paul
  */
 @Service
+@Slf4j
 public class SchedulerServiceImpl extends GlobalHooks implements SchedulerService {
 
     private static final Logger logger = LoggerFactory.getLogger(SchedulerServiceImpl.class);

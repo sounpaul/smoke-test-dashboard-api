@@ -4,10 +4,12 @@ import com.company.smoketestdashboard.controller.STDashboardControllerImpl;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.it.Ma;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@Slf4j
 public class TestStepDef {
 
     private static final Logger logger = LoggerFactory.getLogger(TestStepDef.class);
