@@ -33,8 +33,6 @@ import java.util.Optional;
 @Slf4j
 public class STDashboardServiceImpl extends GlobalHooks implements STDashboardService {
 
-    private static final Logger logger = LoggerFactory.getLogger(STDashboardServiceImpl.class);
-
     @Autowired
     STDashboardRepository stDashboardRepository;
     @Autowired
@@ -46,17 +44,19 @@ public class STDashboardServiceImpl extends GlobalHooks implements STDashboardSe
 
     @Override
     public STDashboardRequest createTestSuite(STDashboardRequest stDashboardRequest) {
-        logger.info("Adding test suite \"{}\"", stDashboardRequest.getSuiteName());
+        log.info("Adding test suite \"{}\"", stDashboardRequest.getSuiteName());
         STDashboardRequest dashboardDBData = null;
         try {
-            dashboardDBData = stDashboardRepository.findTestSuiteByName(transform(stDashboardRequest, "ADD").getSuiteName().toUpperCase().trim());
-            if (dashboardDBData == null) {
-                dashboardDBData = stDashboardRepository.save(stDashboardRequest);
+            log.info("Checking if test suite already exist : {}", stDashboardRequest);
+            boolean exists = stDashboardRepository.findTestSuiteByName(stDashboardRequest.getSuiteName().toUpperCase().trim());
+            if (!exists) {
+                log.info("Test suite {} does not exist", stDashboardRequest);
+                dashboardDBData = stDashboardRepository.save(transform(stDashboardRequest, "ADD"));
             } else {
                 throw new SMDashboardException("Test suite name \"" + stDashboardRequest.getSuiteName().trim() + "\"" + " already exists");
             }
         } catch (Exception e) {
-            logger.error("Exception caught : ", e);
+            log.error("Exception caught : ", e);
         }
         return dashboardDBData;
     }
@@ -65,7 +65,7 @@ public class STDashboardServiceImpl extends GlobalHooks implements STDashboardSe
     public Optional<STDashboardRequest> purgeTestSuite(long id) {
         Optional<STDashboardRequest> stDashboardRequest = null;
         if (stDashboardRepository.existsById(id)) {
-            logger.info("Test suite found with TEST_SUITE_ID={} in database", id);
+            log.info("Test suite found with TEST_SUITE_ID={} in database", id);
             stDashboardRequest = stDashboardRepository.findById(id);
             stDashboardRepository.deleteById(id);
             return stDashboardRequest;
@@ -83,7 +83,7 @@ public class STDashboardServiceImpl extends GlobalHooks implements STDashboardSe
             testStatusHistory.setTestSuiteID(stDashboardRequest.getId());
             testStatusHistoryRepository.save(testStatusHistory);
         }
-        logger.info("Test results saved to DASHBOARD & TEST_RUN_HISTORY tables");
+        log.info("Test results saved to DASHBOARD & TEST_RUN_HISTORY tables");
     }
 
     @Override
@@ -94,12 +94,12 @@ public class STDashboardServiceImpl extends GlobalHooks implements STDashboardSe
             InputStream is = contextClassLoader.getResourceAsStream(String.format("%s.feature", featureFileName));
             if (is != null) {
                 URL featureFileResource = this.getClass().getClassLoader().getResource(String.format("%s.feature", featureFileName));
-                logger.info("Feature file {}.feature exists", featureFileName);
+                log.info("Feature file {}.feature exists", featureFileName);
                 String[] args = new String[]{"-g", "com.company.smoketestdashboard.stepdefinition", featureFileResource.toExternalForm(), "--dry-run"};
                 returnCode = Main.run(args, contextClassLoader);
             }
         } catch (Exception e) {
-            logger.error("Exception caught : ", e);
+            log.error("Exception caught : ", e);
         }
         return returnCode;
     }
@@ -112,13 +112,13 @@ public class STDashboardServiceImpl extends GlobalHooks implements STDashboardSe
             InputStream is = contextClassLoader.getResourceAsStream(String.format("%s.feature", featureFileName));
             if (is != null) {
                 URL featureFileResource = this.getClass().getClassLoader().getResource(String.format("%s.feature", featureFileName));
-                logger.info("Feature file {}.feature exists", featureFileName);
+                log.info("Feature file {}.feature exists", featureFileName);
                 String[] args = new String[]{"-g", "com.company.smoketestdashboard.stepdefinition", featureFileResource.toExternalForm()};
                 exitCode = Main.run(args, contextClassLoader);
             }
-            logger.info("Cucumber execution completed, exit code={}", exitCode);
+            log.info("Cucumber execution completed, exit code={}", exitCode);
         } catch (Exception e) {
-            logger.error("Exception e : ", e);
+            log.error("Exception e : ", e);
         }
         return exitCode;
 
@@ -137,11 +137,6 @@ public class STDashboardServiceImpl extends GlobalHooks implements STDashboardSe
         testSuiteResultResponse.setTestSuiteName(testSuiteName);
         testSuiteResultResponse.setTestSuiteID(testSuiteID);
         return testSuiteResultResponse;
-    }
-
-    @Override
-    public STDashboardRequest getTestSuite(String testSuiteName) {
-        return stDashboardRepository.findTestSuiteByName(testSuiteName);
     }
 
     public STDashboardRequest getTestSuiteById(long id) {

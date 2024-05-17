@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    hikari:
+      idleTimeout: 600000
+      maxLifetime: 3600000
+      maximum-pool-size: 20
+      minimum-idle: 1
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://overly-living-gopher.a1.pgedge.io/smoke_test_dashboard?sslmode=require
+    username: admin
+    password:
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+logging:
+  config: file:./src/main/resources/logback.xml

@@ -12,8 +12,6 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class HealthCheckServiceImpl implements HealthCheckService {
 
-    private static final Logger logger = LoggerFactory.getLogger(HealthCheckServiceImpl.class);
-
     @Autowired
     STDashboardRepository stDashboardRepository;
     @Override
@@ -24,7 +22,7 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         } else {
             healthCheckResponse = new HealthCheckResponse("DOWN");
         }
-        logger.info("DB Status : {}", healthCheckResponse.getDbStatus());
+        log.info("DB Status : {}", healthCheckResponse.getDbStatus());
         return healthCheckResponse;
     }
 

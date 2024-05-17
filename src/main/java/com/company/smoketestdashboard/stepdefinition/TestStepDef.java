@@ -12,8 +12,6 @@ import org.slf4j.LoggerFactory;
 @Slf4j
 public class TestStepDef {
 
-    private static final Logger logger = LoggerFactory.getLogger(TestStepDef.class);
-
     String actualResult = "";
     String divisibility = "";
 

@@ -10,8 +10,8 @@ import java.util.List;
 @Repository
 public interface STDashboardRepository extends JpaRepository<STDashboardRequest, Long> {
 
-    @Query("Select d from STDashboardRequest d where upper(d.suiteName) = ?1")
-    STDashboardRequest findTestSuiteByName(String testSuiteName);
+    @Query("Select count(d) = 1 from STDashboardRequest d where upper(d.suiteName) = ?1")
+    boolean findTestSuiteByName(String testSuiteName);
     @Query("Select d from STDashboardRequest d where d.isEnabled = true")
     List<STDashboardRequest> findAllEnabledTestSuites();
 

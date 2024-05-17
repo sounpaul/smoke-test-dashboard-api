@@ -12,8 +12,6 @@ import java.util.*;
 
 @Slf4j
 public class GlobalHooks {
-
-    private static final Logger logger = LoggerFactory.getLogger(GlobalHooks.class);
     public static List<TestStatusHistory> testStatusHistoryList;
     private TestStatusHistory scenarioWiseStatus;
     private long startTimeMillis;
@@ -37,7 +35,7 @@ public class GlobalHooks {
         scenarioWiseStatus = new TestStatusHistory();
         startTimeMillis = System.currentTimeMillis();
         scenarioWiseStatus.setStartTime(TimeUtils.getCurrentDateTime(Constants.DATETIME_FORMAT));
-        logger.info("Starting tests for scenario : SCENARIO_NAME=[{}], TEST_EXECUTION_ID=[{}], TEST_CASE_ID=[{}]",
+        log.info("Starting tests for scenario : SCENARIO_NAME=[{}], TEST_EXECUTION_ID=[{}], TEST_CASE_ID=[{}]",
                 scenario.getName(), testExecutionID, scenario.getId());
     }
 
@@ -49,7 +47,7 @@ public class GlobalHooks {
         scenarioWiseStatus.setTestCaseID(scenario.getId());
         scenarioWiseStatus.setStatus(scenario.getStatus().name());
         testStatusHistoryList.add(scenarioWiseStatus);
-        logger.info("Finished testing for scenario : SCENARIO_NAME=[{}], TEST_EXECUTION_ID=[{}], TEST_CASE_ID=[{}], STATUS=[{}]",
+        log.info("Finished testing for scenario : SCENARIO_NAME=[{}], TEST_EXECUTION_ID=[{}], TEST_CASE_ID=[{}], STATUS=[{}]",
                 scenario.getName(), testExecutionID, scenario.getId(), scenario.getStatus().name());
     }
 

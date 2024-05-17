@@ -28,6 +28,7 @@ dependencies {
     implementation 'io.cucumber:cucumber-junit:7.17.0'
     implementation "junit:junit:4.13.2"
     runtimeOnly "com.h2database:h2"
+    implementation 'org.postgresql:postgresql:42.7.3'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }

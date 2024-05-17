@@ -21,8 +21,6 @@ import java.util.List;
 @Slf4j
 public class SchedulerServiceImpl extends GlobalHooks implements SchedulerService {
 
-    private static final Logger logger = LoggerFactory.getLogger(SchedulerServiceImpl.class);
-
     @Autowired
     STDashboardServiceImpl stDashboardService;
 
@@ -32,20 +30,20 @@ public class SchedulerServiceImpl extends GlobalHooks implements SchedulerServic
     @Override
     @Scheduled(cron = "${cron.expression}")
     public void runAllEnabledTestSuites() {
-        logger.info("Starting execution of all enabled test suites as per cron schedule");
+        log.info("Starting execution of all enabled test suites as per cron schedule");
         try {
             int exitStatus = 0;
             int runReadinessExitCode = 0;
             String testResult = "";
             List<STDashboardRequest> testSuiteList = stDashboardRepository.findAllEnabledTestSuites();
             if (testSuiteList.size() > 0) {
-                logger.info("Enabled test suites : {}", testSuiteList.stream().toList());
+                log.info("Enabled test suites : {}", testSuiteList.stream().toList());
                 for (STDashboardRequest stDashboardRequest : testSuiteList) {
                     String startTimeSrvcLvl = TimeUtils.getCurrentDateTime(Constants.DATETIME_FORMAT);
                     long currentTimeInMillsSrvcLvl = System.currentTimeMillis();
                     runReadinessExitCode = stDashboardService.checkForRunReadiness(stDashboardRequest.getFeatureFileName().trim());
                     if (runReadinessExitCode == 0) {
-                        logger.info("Glue code for feature file {}.feature exists", stDashboardRequest.getFeatureFileName().trim());
+                        log.info("Glue code for feature file {}.feature exists", stDashboardRequest.getFeatureFileName().trim());
                         exitStatus = stDashboardService.executeTestSuite(stDashboardRequest.getFeatureFileName().trim());
                         stDashboardRequest = stDashboardService.captureDefinedTestExecutionResults(stDashboardRequest);
                         if (exitStatus == 0) {
@@ -67,17 +65,17 @@ public class SchedulerServiceImpl extends GlobalHooks implements SchedulerServic
                         } else if (runReadinessExitCode == 1) {
                             errorLogger = String.format("Glue code for feature file %s.feature does not exist in classpath", stDashboardRequest.getFeatureFileName());
                         }
-                        logger.error(errorLogger);
+                        log.error(errorLogger);
                         stDashboardRequest.setNotes(errorLogger);
                         stDashboardRepository.save(stDashboardRequest);
                     }
-                    logger.info("Finished running test suite : TEST_SUITE_NAME={}, FEATURE_FILE_NAME={}.feature, TEST_RESULTS={}", stDashboardRequest.getSuiteName(), stDashboardRequest.getFeatureFileName(), testResult);
+                    log.info("Finished running test suite : TEST_SUITE_NAME={}, FEATURE_FILE_NAME={}.feature, TEST_RESULTS={}", stDashboardRequest.getSuiteName(), stDashboardRequest.getFeatureFileName(), testResult);
                 }
             } else {
-                logger.warn("No test suites are present in enabled state");
+                log.warn("No test suites are present in enabled state");
             }
         } catch (Exception e) {
-            logger.error("Exception caught : ", e);
+            log.error("Exception caught : ", e);
         }
     }
 }

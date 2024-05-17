@@ -2,9 +2,7 @@ package com.company.smoketestdashboard.service;
 
 import com.company.smoketestdashboard.model.STDashboardRequest;
 import com.company.smoketestdashboard.model.TestSuiteResultResponse;
-import com.company.smoketestdashboard.model.TestStatusHistory;
 
-import java.util.List;
 import java.util.Optional;
 
 /**
@@ -17,7 +15,6 @@ public interface STDashboardService {
     void saveTestResults(STDashboardRequest stDashboardRequest);
     int executeTestSuite(String testSuiteName);
     TestSuiteResultResponse createTestResultResponse(String testSuiteName, String testSuiteID);
-    STDashboardRequest getTestSuite(String testSuiteName);
     int checkForRunReadiness(String featureFileName);
     STDashboardRequest updateTestSuite(STDashboardRequest stDashboardRequest);
 
